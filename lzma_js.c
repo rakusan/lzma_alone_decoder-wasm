@@ -2,29 +2,51 @@
 #include <stdlib.h>
 #include "lzma.h"
 
-void* EMSCRIPTEN_KEEPALIVE create_buffer(size_t size) {
+void* EMSCRIPTEN_KEEPALIVE js_malloc(size_t size) {
     return malloc(size);
 }
 
-void EMSCRIPTEN_KEEPALIVE destroy_buffer(void *ptr) {
+void EMSCRIPTEN_KEEPALIVE js_free(void *ptr) {
     free(ptr);
 }
 
-lzma_ret EMSCRIPTEN_KEEPALIVE lzma_decode(
-    uint8_t* inbuf,
-    size_t insize,
-    uint8_t* outbuf,
-    size_t outsize)
-{
-    lzma_stream stream = LZMA_STREAM_INIT;
-    lzma_ret ret = lzma_alone_decoder(&stream, 128 << 20);
-    if (ret == LZMA_OK) {
-        stream.next_in = inbuf;
-        stream.avail_in = insize;
-        stream.next_out = outbuf;
-        stream.avail_out = outsize;
-        ret = lzma_code(&stream, LZMA_FINISH);
+lzma_stream* EMSCRIPTEN_KEEPALIVE js_lzma_alone_decoder(uint64_t memlimit) {
+    lzma_stream* strm = malloc(sizeof(lzma_stream));
+    if (!strm) {
+        return NULL;
     }
-    lzma_end(&stream);
-    return ret;
+
+    lzma_stream tmp = LZMA_STREAM_INIT;
+    *strm = tmp;
+
+    lzma_ret ret = lzma_alone_decoder(strm, memlimit);
+    if (ret == LZMA_OK) {
+        return strm;
+    }
+
+    lzma_end(strm);
+    return NULL;
 }
+
+lzma_ret EMSCRIPTEN_KEEPALIVE js_lzma_code(lzma_stream *strm, lzma_action action) {
+    return lzma_code(strm, action);
+}
+
+void EMSCRIPTEN_KEEPALIVE js_lzma_end(lzma_stream *strm) {
+    lzma_end(strm);
+    free(strm);
+}
+
+#define JS_LZMA_STREAM_SET(type, member) \
+    void EMSCRIPTEN_KEEPALIVE js_lzma_stream_set_##member(lzma_stream* strm, type member) { strm->member = member; }
+
+#define JS_LZMA_STREAM_GET(type, member) \
+    type EMSCRIPTEN_KEEPALIVE js_lzma_stream_get_##member(lzma_stream* strm) { return strm->member; }
+
+JS_LZMA_STREAM_SET(const uint8_t*, next_in)
+JS_LZMA_STREAM_SET(size_t, avail_in)
+JS_LZMA_STREAM_SET(uint8_t*, next_out)
+JS_LZMA_STREAM_SET(size_t, avail_out)
+
+JS_LZMA_STREAM_GET(size_t, avail_in)
+JS_LZMA_STREAM_GET(size_t, avail_out)
