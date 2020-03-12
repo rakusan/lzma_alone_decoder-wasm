@@ -31,7 +31,7 @@ Module.onRuntimeInitialized = function() {
 
 
     const CHUNK_SIZE = 10240;
-    const filebuf = Buffer.alloc(CHUNK_SIZE);
+    const filebuf = new Uint8Array(CHUNK_SIZE);
     const inbuf = malloc(CHUNK_SIZE);
 
     const OUTBUF_SIZE = 65536;
@@ -68,7 +68,7 @@ Module.onRuntimeInitialized = function() {
                         throw "Unexpected EOF";
                     }
 
-                    Module.HEAPU8.set(new Uint8Array(filebuf.buffer), inbuf);
+                    Module.HEAPU8.set(filebuf, inbuf);
                     set_next_in(strm, inbuf);
                     set_avail_in(strm, nread);
 
