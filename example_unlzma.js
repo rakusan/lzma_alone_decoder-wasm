@@ -29,29 +29,27 @@ Module.onRuntimeInitialized = function() {
     const LZMA_RUN = 0;
     const LZMA_FINISH = 3;
 
-
-    const CHUNK_SIZE = 10240;
-    const filebuf = new Uint8Array(CHUNK_SIZE);
-    const inbuf = malloc(CHUNK_SIZE);
-
-    const OUTBUF_SIZE = 65536;
-    const outbuf = malloc(OUTBUF_SIZE);
-
-    const strm = lzma_alone_decoder(128 << 20);
-
     fs.open(process.argv[2], "r", (err, infd) => {
         if (err) throw err;
 
         fs.open(process.argv[3], "w", (err, outfd) => {
-            if (err) throw err;
+            if (err) {
+                fs.close(infd, err => {});
+                throw err;
+            }
+
+            const CHUNK_SIZE = 10240;
+            const filebuf = new Uint8Array(CHUNK_SIZE);
+            const inbuf = malloc(CHUNK_SIZE);
+
+            const OUTBUF_SIZE = 65536;
+            const outbuf = malloc(OUTBUF_SIZE);
+
+            const strm = lzma_alone_decoder(128 << 20);
 
             function close() {
-                fs.close(infd, err => {
-                    if (err) throw err;
-                });
-                fs.close(outfd, err => {
-                    if (err) throw err;
-                });
+                fs.close(infd, err => {});
+                fs.close(outfd, err => {});
                 lzma_end(strm);
                 free(inbuf);
                 free(outbuf);
@@ -87,7 +85,6 @@ Module.onRuntimeInitialized = function() {
                                 throw err;
                             }
                         });
-
                     } while (ret === LZMA_OK && avail_out === 0);
 
                     if (get_avail_in(strm) > 0) {
