@@ -88,8 +88,7 @@ Module.onRuntimeInitialized = function() {
                     } while (ret === LZMA_OK && avail_out === 0);
 
                     if (get_avail_in(strm) > 0) {
-                        close();
-                        throw "Unexpected bytes in input buffer";
+                        console.warn("Unexpected bytes in input buffer");
                     }
 
                     switch (ret) {
