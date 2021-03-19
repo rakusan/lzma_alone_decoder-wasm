@@ -1,6 +1,7 @@
 #include <emscripten/emscripten.h>
 #include <stdlib.h>
 #include "lzma.h"
+#include "miniz.h"
 
 void* EMSCRIPTEN_KEEPALIVE js_malloc(size_t size) {
     return malloc(size);
@@ -50,3 +51,8 @@ JS_LZMA_STREAM_SET(size_t, avail_out)
 
 JS_LZMA_STREAM_GET(size_t, avail_in)
 JS_LZMA_STREAM_GET(size_t, avail_out)
+
+
+int EMSCRIPTEN_KEEPALIVE js_mz_uncompress(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *pSource, mz_ulong source_len) {
+    return mz_uncompress(pDest, pDest_len, pSource, source_len);
+}
