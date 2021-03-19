@@ -14,10 +14,10 @@ MEMORY_GROWTH := -s ALLOW_MEMORY_GROWTH=1
 #ASSERTIONS := -s ASSERTIONS=1
 
 
-all: lzma_js.js lzma_js.wasm
+all: lzma_zlib_js.js lzma_zlib_js.wasm
 
-lzma_js.js lzma_js.wasm: lzma_js.c $(XZ_DIR)/src/liblzma/.libs/liblzma.a $(MZ_DIR)/libminiz.a
-	emcc -o lzma_js.js lzma_js.c -O3 \
+lzma_zlib_js.js lzma_zlib_js.wasm: lzma_zlib_js.c $(XZ_DIR)/src/liblzma/.libs/liblzma.a $(MZ_DIR)/libminiz.a
+	emcc -o lzma_zlib_js.js lzma_zlib_js.c -O3 \
 	  -s WASM=1 -s EXTRA_EXPORTED_RUNTIME_METHODS="['cwrap']" -s NO_EXIT_RUNTIME=1 \
 	  $(MEMORY_GROWTH) $(MAXIMUM_MEMORY) $(INITIAL_MEMORY) $(ASSERTIONS) \
 	  -I"$(XZ_DIR)/src/liblzma/api" -L"$(XZ_DIR)/src/liblzma/.libs" -llzma \
@@ -48,7 +48,7 @@ $(MZ_SOURCE_FILE):
 
 .PHONY: clean cleanall
 clean:
-	rm -f lzma_js.js lzma_js.wasm
+	rm -f lzma_zlib_js.js lzma_zlib_js.wasm
 
 cleanall: clean
 	rm -rf $(XZ_DIR) $(MZ_DIR)
